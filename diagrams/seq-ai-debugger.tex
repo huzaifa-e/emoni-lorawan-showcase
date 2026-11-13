@@ -1,0 +1,41 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Sequence: a question on a device page, answered by the built-in AI debugger.
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\fill[white] (-1.8,1.4) rectangle (18.8,-19.0);
+\def\B{-18.4}
+\foreach \x/\n/\c/\t in {0/eng/eg/Engineer,
+                         3.6/ui/eg/Device page\\{\footnotesize\mdseries debug panel},
+                         7.4/srv/eb/Dashboard server,
+                         11.2/ag/ep/AI agent harness\\{\footnotesize\mdseries in the container},
+                         15.0/tl/eb/Tools\\{\footnotesize\mdseries database, source, git}}{
+  \node[head=\c] (\n) at (\x,0) {\t};
+  \draw[life] (\n.south) -- (\x,\B);
+}
+\draw[msg] (0,-1.4) -- node[mlabel,above]{``why is the battery}(3.6,-1.4);
+\node[mlabel] at (1.8,-1.85) {dropping faster?''};
+\draw[act=eg] (3.49,-1.4) rectangle (3.71,-17.6);
+\draw[msg] (3.71,-2.6) -- node[mlabel,above]{POST /api/ask (signed-in session)} (7.4,-2.6);
+\draw[act=eb] (7.29,-2.6) rectangle (7.51,-17.2);
+\node[note=eb,anchor=north west] at (7.65,-2.85) {context: device summary, recent events,\\pinned notes, the chart window selected};
+\draw[msg] (7.51,-4.4) -- node[mlabel,above]{start run with tools} (11.2,-4.4);
+\draw[act=ep] (11.09,-4.4) rectangle (11.31,-14.0);
+\draw[frag] (5.2,-5.2) rectangle (17.8,-10.6);
+\node[fraglabel] at (5.2,-5.2) {loop};
+\draw[msg] (11.31,-6.0) -- node[mlabel,above]{read-only SQL: uplinks, battery} (15,-6.0);
+\draw[ret] (15,-6.6) -- node[mlabel,above]{rows} (11.31,-6.6);
+\draw[msg] (11.31,-7.5) -- node[mlabel,above]{read firmware source + git history} (15,-7.5);
+\draw[ret] (15,-8.1) -- node[mlabel,above]{code, commits} (11.31,-8.1);
+\draw[ret] (11.2,-9.0) -- node[mlabel,above]{trace step} (7.51,-9.0);
+\draw[ret] (7.4,-9.6) -- node[mlabel,above]{SSE: trace + keepalive} (3.71,-9.6);
+\draw[frag] (-1.2,-11.1) rectangle (12.4,-13.4);
+\node[fraglabel] at (-1.2,-11.1) {opt};
+\draw[ret] (11.2,-11.8) -- node[mlabel,above,pos=0.3]{question back to the developer} (0,-11.8);
+\draw[msg] (0,-12.8) -- node[mlabel,above,pos=0.7]{answer (/api/ask/answer)} (11.2,-12.8);
+\draw[ret] (11.2,-14.0) -- node[mlabel,above]{verdict with evidence} (7.51,-14.0);
+\draw[msg] (7.51,-15.0) -- node[mlabel,above]{save report, distil notes} (15,-15.0);
+\draw[ret] (7.4,-16.0) -- node[mlabel,above]{answer, sources, cost} (3.71,-16.0);
+\draw[ret] (3.6,-17.0) -- node[mlabel,above]{read, follow up} (0,-17.0);
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,47 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Sequence: one reading travels from the meter to the open dashboard.
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\fill[white] (-2,1.4) rectangle (20.6,-17.2);
+\def\B{-16.6}
+\foreach \x/\n/\c/\t in {0/dev/eo/EMONI device\\{\footnotesize\mdseries camera + LoRaWAN},
+                         3.6/gw/ep/Gateway,
+                         7.2/ns/ep/The Things Stack\\{\footnotesize\mdseries network server},
+                         10.8/srv/eb/Dashboard server\\{\footnotesize\mdseries Express + TypeScript},
+                         14.4/db/eb/SQLite,
+                         18.0/ui/eg/Browser\\{\footnotesize\mdseries Next.js dashboard}}{
+  \node[head=\c] (\n) at (\x,0) {\t};
+  \draw[life] (\n.south) -- (\x,\B);
+}
+% device wake
+\draw[act=eo] (-0.11,-1.2) rectangle (0.11,-4.4);
+\node[note=eo,anchor=east] at (-0.35,-2.2) {timer wake\\camera, OCR,\\plausibility\\checks};
+\draw[msg] (0.11,-3.0) -- node[mlabel,above]{LoRa uplink (confirmed)\\reading, battery, events} (3.6,-3.0);
+\draw[msg] (3.6,-3.4) -- node[mlabel,above]{UDP / Basic Station} (7.2,-3.4);
+\draw[act=ep] (7.09,-3.4) rectangle (7.31,-5.6);
+\node[note=ep,anchor=west] at (7.45,-4.15) {dedupe, MIC check,\\decrypt, ADR};
+\draw[ret] (7.2,-4.6) -- node[mlabel,above]{ACK in RX1} (3.6,-4.6);
+\draw[ret] (3.6,-4.9) -- node[mlabel,above]{downlink frame} (0.11,-4.9);
+\node[mlabel,text=mute] at (1.8,-5.5) {device goes back to deep sleep};
+% webhook
+\draw[msg] (7.31,-6.2) -- node[mlabel,above]{POST /webhooks/ttn\\(token-protected)} (10.8,-6.2);
+\draw[act=eb] (10.69,-6.2) rectangle (10.91,-13.4);
+\node[note=eb,anchor=west] at (11.1,-7.25) {find the reading in 10+ payload paths,\\decode firmware events and battery};
+\draw[msg] (10.91,-8.6) -- node[mlabel,above]{store uplink, reading, telemetry} (14.4,-8.6);
+\draw[ret] (14.4,-9.1) -- node[mlabel,above]{last 8 readings} (10.91,-9.1);
+% alt anomaly
+\draw[frag] (9.6,-9.6) rectangle (16.3,-12.2);
+\node[fraglabel] at (9.6,-9.6) {opt};
+\node[font=\footnotesize\itshape,text=mute,anchor=north west] at (10.25,-9.62) {[jump $\geq$ max(min jump, median $\times$ Q\textsubscript{max})]};
+\draw[msg] (10.91,-10.5) -- node[mlabel,above]{anomaly\_log: overshoot} (14.4,-10.5);
+\draw[msg] (10.91,-11.4) -- node[mlabel,above]{recalibrate downlink, see the auto-recalibration diagram} (7.2,-11.4);
+\draw[ret] (10.8,-12.7) -- node[mlabel,above]{200 OK} (7.31,-12.7);
+% SSE
+\draw[msg] (10.91,-13.4) -- node[mlabel,above]{SSE: uplink event} (18,-13.4);
+\draw[act=eg] (17.89,-13.4) rectangle (18.11,-16.0);
+\draw[msg] (17.89,-14.4) -- node[mlabel,above]{GET /api/device-summaries} (10.8,-14.4);
+\draw[ret] (10.8,-15.1) -- node[mlabel,above]{status, battery, runtime, link, FUOTA} (17.89,-15.1);
+\node[note=eg,anchor=east] at (17.7,-15.9) {card and charts update, no reload};
+\end{tikzpicture}
+\end{document}

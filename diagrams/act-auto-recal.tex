@@ -1,0 +1,37 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Activity: the dashboard server checks each new reading for an overshoot and re-baselines the device.
+\begin{document}
+\begin{tikzpicture}[node distance=7mm and 14mm]
+\node[start] (s) {};
+\node[step=eb,below=of s] (in) {New reading stored\\from the webhook};
+\node[dec,below=of in] (en) {auto re-baseline\\on for the device?};
+\node[dec,below=of en] (cd) {outside the\\cool-down?};
+\node[step=eb,below=of cd] (r) {Last 8 readings: jump = current $-$ previous,\\trend = median of the positive steps before};
+\node[step=eb,below=of r] (th) {threshold = max(minimum jump,\\trend $\times$ Q\textsubscript{max} factor)};
+\node[dec,below=of th] (j) {jump $\geq$\\threshold?};
+\node[step=er,below=of j] (log) {Log an overshoot anomaly\\(shown on the device page)};
+\node[dec,below=of log] (ids) {network IDs\\known?};
+\node[step=ep,below=of ids] (dl) {Queue a confirmed re-baseline\\downlink on the device's server};
+\node[dec,below=of dl] (ok) {accepted?};
+\node[step,below=of ok] (done) {Store the time (starts the cool-down),\\push a live event to open dashboards};
+\node[stop,below=of done] (e) {};
+\node[step=mute,right=22mm of j] (skip) {Nothing to do};
+\node[step=er,right=22mm of ok] (fail) {Log ``failed'' with the\\server's answer};
+\node[step=er,right=22mm of ids] (miss) {Log ``skipped:\\missing IDs''};
+\draw[flow] (s)--(in); \draw[flow] (in)--(en);
+\draw[flow] (en)--node[guard,right]{yes}(cd); \draw[flow] (cd)--node[guard,right]{yes}(r);
+\draw[flow] (r)--(th); \draw[flow] (th)--(j);
+\draw[flow] (j)--node[guard,right]{yes}(log); \draw[flow] (log)--(ids);
+\draw[flow] (ids)--node[guard,right]{yes}(dl); \draw[flow] (dl)--(ok);
+\draw[flow] (ok)--node[guard,right]{yes}(done); \draw[flow] (done)--(e);
+\draw[flow] (j)--node[guard,above]{no}(skip);
+\draw[flow] (en.east)-|node[guard,above,pos=0.2]{no}(skip.north);
+\draw[flow] (cd.east)-|node[guard,above,pos=0.2]{no}($(skip.north)+(-0.6,0)$);
+\draw[flow] (ids)--node[guard,above]{no}(miss);
+\draw[flow] (ok)--node[guard,above]{no}(fail);
+\draw[flow] (skip.east) -- ++(1.3,0) |- (e.east);
+\draw[flow] (miss.east) -- ++(0.9,0) |- ($(e.east)+(0,0.12)$);
+\draw[flow] (fail.east) -- ++(0.5,0) |- ($(e.east)+(0,-0.12)$);
+\end{tikzpicture}
+\end{document}

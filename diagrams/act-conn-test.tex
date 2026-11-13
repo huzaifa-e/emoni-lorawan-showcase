@@ -1,0 +1,29 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Activity: a connectivity test plan run by the test host against a live device.
+\begin{document}
+\begin{tikzpicture}[node distance=7mm and 14mm]
+\node[start] (s) {};
+\node[step=eb,below=of s] (save) {Save the device's session and\\MAC settings on the network server};
+\node[step=eb,below=of save] (next) {Take the next step of the plan};
+\node[step=ep,below=of next] (apply) {Change the network under the device:\\delete session \textbullet{} block downlinks \textbullet{}\\fix data rate / TX power \textbullet{} test downlinks};
+\node[step=eo,below=of apply] (obs) {Observe for the hold time: every uplink,\\join, probe, ACK, SNR, airtime};
+\node[dec,below=of obs] (rec) {recovered\\in time?};
+\node[step=eb,below=of rec] (rest) {Restore the settings, settle,\\compute the step's metrics};
+\node[step=eg,below=of rest] (push) {Push step, metrics and log\\to the dashboard (/conn-tests)};
+\node[dec,below=of push] (more) {more\\steps?};
+\node[step=eb,below=of more] (fin) {Restore everything, check for leftovers,\\write the report};
+\node[stop,below=of fin] (e) {};
+\node[step=er,right=18mm of rec] (bad) {Mark the step ``failed'',\\keep the evidence};
+\node[step=mute,left=18mm of obs,align=left] (stop) {Stop at any time:\\settings restored\\immediately};
+\draw[flow] (s)--(save); \draw[flow] (save)--(next); \draw[flow] (next)--(apply);
+\draw[flow] (apply)--(obs); \draw[flow] (obs)--(rec);
+\draw[flow] (rec)--node[guard,right]{yes}(rest);
+\draw[flow] (rec)--node[guard,above]{no}(bad);
+\draw[flow] (bad.south) |- (rest.east);
+\draw[flow] (rest)--(push); \draw[flow] (push)--(more);
+\draw[flow] (more)--node[guard,right]{no}(fin); \draw[flow] (fin)--(e);
+\draw[flow] (more.west) -- ++(-3.2,0) |- node[guard,above,pos=0.75]{yes} (next.west);
+\draw[flow,dashed,draw=mute] (stop.south) |- (fin.west);
+\end{tikzpicture}
+\end{document}

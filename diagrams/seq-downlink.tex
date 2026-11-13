@@ -1,0 +1,43 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Sequence: changing a device in the field from the dashboard (class A downlink).
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\fill[white] (-1.8,1.4) rectangle (18.6,-17.4);
+\def\B{-16.8}
+\foreach \x/\n/\c/\t in {0/eng/eg/Engineer,
+                         3.6/ui/eg/Dashboard UI,
+                         7.2/srv/eb/Dashboard server,
+                         10.8/ns/ep/The Things Stack\\{\footnotesize\mdseries network server},
+                         15.0/dev/eo/EMONI device\\{\footnotesize\mdseries in deep sleep}}{
+  \node[head=\c] (\n) at (\x,0) {\t};
+  \draw[life] (\n.south) -- (\x,\B);
+}
+\draw[msg] (0,-1.4) -- node[mlabel,above]{set interval to 15 min} (3.6,-1.4);
+\draw[act=eg] (3.49,-1.4) rectangle (3.71,-6.0);
+\node[note=eg,anchor=north west] at (3.85,-1.55) {asks for confirmation:\\every change waits for a person};
+\draw[msg] (3.71,-2.9) -- node[mlabel,above]{POST /api/downlink/upload-interval} (7.2,-2.9);
+\draw[act=eb] (7.09,-2.9) rectangle (7.31,-5.6);
+\node[note=eb,anchor=north west] at (7.45,-3.05) {pick the network server the\\device last reported through};
+\draw[msg] (7.31,-4.3) -- node[mlabel,above]{queue confirmed downlink (API)} (10.8,-4.3);
+\draw[ret] (10.8,-4.9) -- node[mlabel,above]{queued} (7.31,-4.9);
+\draw[ret] (7.2,-5.6) -- node[mlabel,above]{queued, logged on the device} (3.71,-5.6);
+\node[mlabel,text=mute] at (12.9,-6.6) {class A: the device only listens right after its own uplink};
+% next wake
+\draw[frag] (9.4,-7.2) rectangle (17.6,-12.6);
+\node[fraglabel] at (9.4,-7.2) {next wake};
+\draw[act=eo] (14.89,-7.9) rectangle (15.11,-12.2);
+\draw[msg] (14.89,-8.6) -- node[mlabel,above]{uplink: reading, battery, event} (10.8,-8.6);
+\draw[ret] (10.8,-9.5) -- node[mlabel,above]{RX1: ACK + interval command} (14.89,-9.5);
+\node[note=eo,anchor=north east] at (17.5,-10.0) {stores it, sleeps\\15 min from now on};
+\draw[msg] (10.91,-11.3) -- node[mlabel,above]{webhook: uplink} (7.31,-11.3);
+\draw[act=ep] (10.69,-8.6) rectangle (10.91,-11.3);
+% following wake
+\draw[frag] (5.9,-13.1) rectangle (17.6,-16.4);
+\node[fraglabel] at (5.9,-13.1) {wake after that};
+\draw[msg] (15,-13.9) -- node[mlabel,above]{uplink with event ``downlink applied''} (10.8,-13.9);
+\draw[msg] (10.8,-14.7) -- node[mlabel,above]{webhook} (7.2,-14.7);
+\draw[msg] (7.2,-15.5) -- node[mlabel,above]{SSE: applied, new interval} (3.6,-15.5);
+\draw[ret] (3.6,-16.1) -- node[mlabel,above]{card shows 15 min} (0,-16.1);
+\end{tikzpicture}
+\end{document}

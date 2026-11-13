@@ -1,0 +1,49 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Activity: one wake-up of the device, as published in the EMONI Technical Reference Manual (1.3, 2.3).
+\begin{document}
+\begin{tikzpicture}[node distance=7mm and 12mm]
+\node[start] (s) {};
+\node[step=eo,below=of s] (wake) {Wake: timer, button\\or motion (optional)};
+\node[dec,below=of wake] (cal) {calibrated?};
+\node[step=ep,right=18mm of cal] (wifi) {Open the calibration Wi-Fi\\(login, closes after 10 min)};
+\node[dec,below=of cal] (join) {joined?};
+\node[step=ep,right=18mm of join] (dojoin) {OTAA join\\(8 attempts, 2 after an outage)};
+\node[dec,below=of dojoin] (jok) {success?};
+\node[step=er,right=14mm of jok] (back) {Back-off: sleep 2$\times$, 4$\times$ \ldots\\the interval, up to 6 h};
+\node[step,below=12mm of join] (pic) {Capture a picture of the counter\\(LED illumination)};
+\node[step,below=of pic] (ocr) {Recognise the digits on the device\\(neural network, no image leaves)};
+\node[dec,below=of ocr] (ok) {plausible?};
+\node[step=er,right=18mm of ok] (retry) {Retry; if still invalid,\\send the last valid reading\\with an event code};
+\node[step=eb,below=of ok] (up) {Send one uplink: reading,\\battery, event code, motion};
+\node[dec,below=of up] (ack) {ACK?};
+\node[step=er,right=18mm of ack] (nack) {Resend once unconfirmed;\\probe the link; rejoin after\\5 missed ACKs in a row};
+\node[dec,below=of ack] (dl) {downlink?};
+\node[step=eb,right=18mm of dl] (apply) {Apply: interval, confirm period,\\re-baseline, motion mode,\\FUOTA chunk};
+\node[step=eo,below=of dl] (sleep) {Deep sleep for the interval\\(1 min to 72 h, default 3 h)};
+\node[stop,below=of sleep] (e) {};
+\draw[flow] (s) -- (wake); \draw[flow] (wake) -- (cal);
+\draw[flow] (cal) -- node[guard,above]{no} (wifi);
+\draw[flow] (cal) -- node[guard,right]{yes} (join);
+\draw[flow] (join) -- node[guard,above]{no} (dojoin);
+\draw[flow] (dojoin) -- (jok);
+\draw[flow] (jok) -- node[guard,above]{no} (back);
+\draw[flow] (jok.west) -| node[guard,above,pos=0.25]{yes} ($(pic.north)+(1.2,0)$);
+\draw[flow] (join) -- node[guard,right]{yes} (pic);
+\draw[flow] (pic) -- (ocr); \draw[flow] (ocr) -- (ok);
+\draw[flow] (ok) -- node[guard,above]{no} (retry);
+\draw[flow] (ok) -- node[guard,right]{yes} (up);
+\draw[flow] (retry.south) |- ($(up.east)+(0,0.15)$);
+\draw[flow] (up) -- (ack);
+\draw[flow] (ack) -- node[guard,above]{no} (nack);
+\draw[flow] (ack) -- node[guard,right]{yes} (dl);
+\draw[flow] (nack.south) |- ($(dl.north east)+(-0.6,0.05)$);
+\draw[flow] (dl) -- node[guard,above]{yes} (apply);
+\draw[flow] (dl) -- node[guard,right]{no} (sleep);
+\draw[flow] (apply.south) |- (sleep.east);
+\draw[flow] (wifi.east) -- ++(1.2,0) |- ($(sleep.east)+(0,-0.25)$);
+\draw[flow] (back.south) -- ++(0,-0.4) -| ($(wifi.east)+(1.2,-0.01)$);
+\draw[flow] (sleep) -- (e);
+\node[font=\footnotesize,text=mute,anchor=north west,align=left] at ($(e.south west)+(-3.4,-0.3)$) {Source: EMONI Technical Reference Manual, sections 1.3 and 2.3 (emoni.cloud/downloads).};
+\end{tikzpicture}
+\end{document}

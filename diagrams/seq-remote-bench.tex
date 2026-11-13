@@ -1,0 +1,47 @@
+\documentclass[border=10pt]{standalone}
+\input{emoni-style}
+% Sequence: flashing and measuring a bench device from anywhere.
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\fill[white] (-1.8,1.4) rectangle (19.4,-21.0);
+\def\B{-20.4}
+\foreach \x/\n/\c/\t in {0/dev/eg/Developer or\\AI agent\\{\footnotesize\mdseries laptop, anywhere},
+                         3.8/ts/ep/Tailscale\\{\footnotesize\mdseries private mesh VPN},
+                         7.6/hil/eb/Bench host\\{\footnotesize\mdseries jhubuntu},
+                         11.2/ppk/eo/Power profiler\\{\footnotesize\mdseries PPK2},
+                         14.6/brd/eo/EMONI device\\{\footnotesize\mdseries on the bench},
+                         18.0/dash/eg/Dashboard}{
+  \node[head=\c] (\n) at (\x,0) {\t};
+  \draw[life] (\n.south) -- (\x,\B);
+}
+\draw[msg] (0,-1.6) -- node[mlabel,above]{ssh} (3.8,-1.6);
+\draw[msg] (3.8,-1.9) -- node[mlabel,above]{WireGuard tunnel, no open port} (7.6,-1.9);
+\node[note=ep,anchor=north west] at (-1.6,-2.4) {same command from the office LAN\\or from home; keys, not passwords};
+\draw[act=eb] (7.49,-1.9) rectangle (7.71,-19.6);
+% flash
+\draw[frag] (-1.2,-3.6) rectangle (16.2,-8.6);
+\node[fraglabel] at (-1.2,-3.6) {flash};
+\draw[msg] (0,-4.3) -- node[mlabel,above]{copy the signed firmware image} (7.49,-4.3);
+\draw[msg] (7.71,-5.0) -- node[mlabel,above]{power on (source mode)} (11.2,-5.0);
+\draw[msg] (11.2,-5.4) -- (14.6,-5.4);
+\draw[msg] (7.71,-6.3) -- node[mlabel,above,pos=0.32]{write flash over USB, verify} (14.6,-6.3);
+\draw[ret] (14.6,-7.0) -- node[mlabel,above,pos=0.68]{hash ok} (7.71,-7.0);
+\draw[msg] (7.71,-7.9) -- node[mlabel,above]{power-cycle: clean cold boot} (11.2,-7.9);
+% observe
+\draw[frag] (-1.2,-9.1) rectangle (19.0,-14.2);
+\node[fraglabel] at (-1.2,-9.1) {observe};
+\draw[ret] (14.6,-9.9) -- node[mlabel,above,pos=0.68]{console log (receive wire only)} (7.71,-9.9);
+\draw[msg] (7.71,-10.7) -- node[mlabel,above]{record current, up to 100 kS/s} (11.2,-10.7);
+\draw[ret] (11.2,-11.4) -- node[mlabel,above]{samples + logic channels} (7.71,-11.4);
+\draw[msg] (14.6,-12.2) -- node[mlabel,above,pos=0.7]{LoRaWAN uplinks, via network server} (18,-12.2);
+\draw[msg] (7.71,-13.4) -- node[mlabel,above,pos=0.8]{power, connectivity and FUOTA runs pushed by sync services} (18,-13.4);
+% control
+\draw[frag] (-1.2,-14.7) rectangle (19.0,-18.3);
+\node[fraglabel] at (-1.2,-14.7) {control};
+\draw[msg] (0,-15.4) -- node[mlabel,above,pos=0.6]{service command: debug output on / off} (7.49,-15.4);
+\draw[msg] (7.71,-15.8) -- node[mlabel,above,pos=0.6]{over the console} (14.6,-15.8);
+\draw[msg] (7.71,-16.6) -- node[mlabel,above]{change supply voltage live} (11.2,-16.6);
+\draw[msg] (0,-17.6) -- node[mlabel,above,pos=0.82]{downlinks: interval, re-baseline (see the downlink diagram)} (18,-17.6);
+\draw[ret] (18,-19.2) -- node[mlabel,above,pos=0.5]{results: waveforms, battery life, uplink timeline, MCP tools} (0,-19.2);
+\end{tikzpicture}
+\end{document}
